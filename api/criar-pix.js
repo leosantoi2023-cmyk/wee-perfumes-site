@@ -37,30 +37,48 @@ export default async function handler(req, res) {
     const endereco = `${dados.rua}, ${dados.numero}${dados.complemento ? " " + dados.complemento : ""} - ${dados.bairro}, ${dados.cidade}/${dados.uf} - CEP ${dados.cep}`;
     const descricao = `${produto.nome} | Cliente: ${dados.nome} | Zap: ${dados.whatsapp} | Entrega: ${endereco}`.slice(0, 250);
 
-    // Chamada à Pimpou
-    const resposta = await fetch(`${PIMPOU_BASE}/pix/create`, {
-      method: "POST",
-      headers: {
-        "X-API-Key": process.env.PIMPOU_API_KEY,
-        "X-API-Secret": process.env.PIMPOU_API_SECRET,
-        "Idempotency-Key": globalThis.crypto?.randomUUID
-          ? crypto.randomUUID()
-          : require("crypto").randomUUID(),
-        "Content-Type": "application/json",
-      },
-      // Enviamos o valor em vários formatos comuns; a API usa o que reconhecer.
-      // Se a doc da Pimpou pedir um nome de campo específico, ajuste aqui.
-      body: JSON.stringify({
-        amount: produto.preco,
-        value: produto.preco,
-        valor: produto.preco,
-        description: descricao,
-        descricao: descricao,
-        payer: { name: dados.nome, phone: dados.whatsapp, email: dados.email || undefined },
-      }),
-    });
+    // Chamada à Pimpou — ela rejeita campos desconhecidos (FIELD_NOT_ALLOWED),
+    // então enviamos o payload e, se ela recusar um campo, removemos e tentamos de novo.
+    let payload = {
+      amount: produto.preco,
+      description: descricao,
+      payer: { name: dados.nome, phone: dados.whatsapp, email: dados.email || undefined },
+    };
 
-    const corpo = await resposta.json().catch(() => ({}));
+    let resposta, corpo;
+    for (let tentativa = 0; tentativa < 5; tentativa++) {
+      resposta = await fetch(`${PIMPOU_BASE}/pix/create`, {
+        method: "POST",
+        headers: {
+          "X-API-Key": process.env.PIMPOU_API_KEY,
+          "X-API-Secret": process.env.PIMPOU_API_SECRET,
+          "Idempotency-Key": globalThis.crypto?.randomUUID
+            ? crypto.randomUUID()
+            : require("crypto").randomUUID(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      corpo = await resposta.json().catch(() => ({}));
+      if (resposta.ok) break;
+
+      // Se a Pimpou recusou um campo específico, removemos e tentamos novamente
+      const msg = corpo?.error?.message || corpo?.message || "";
+      const codigo = corpo?.error?.code || corpo?.code || "";
+      const campoRecusado = /Campo n\u00e3o permitido[^:]*:\s*([\w.]+)/i.exec(msg)?.[1];
+
+      if (codigo === "FIELD_NOT_ALLOWED" && campoRecusado && campoRecusado in payload) {
+        console.log("Pimpou recusou o campo, removendo e tentando de novo:", campoRecusado);
+        delete payload[campoRecusado];
+        // Se recusou 'amount', tentamos os nomes alternativos mais comuns
+        if (campoRecusado === "amount") payload.valor = produto.preco;
+        if (campoRecusado === "valor") payload.value = produto.preco;
+        if (campoRecusado === "description") payload.descricao = descricao;
+        continue;
+      }
+      break; // erro de outro tipo: paramos e reportamos
+    }
 
     if (!resposta.ok) {
       console.log("Erro Pimpou:", resposta.status, JSON.stringify(corpo));
