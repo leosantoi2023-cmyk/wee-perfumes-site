@@ -105,8 +105,8 @@
             <img id="foto-kit" src="images/kit-feminino.jpg" alt="Kit de perfumes">
             <div>
                 <h2 id="nome-kit">Kit Feminino — Elegância Irresistível</h2>
-                <p><span class="de">R$ 597,00</span><span class="preco">R$ 173,90</span></p>
-                <p style="color:var(--cinza);font-size:.78rem">3 perfumes importados de 100ml</p>
+                <p><span class="de" id="preco-de">R$ 597,00</span><span class="preco" id="preco-por">R$ 179,60</span></p>
+                <p id="desc-kit" style="color:var(--cinza);font-size:.78rem">3 perfumes importados de 100ml</p>
             </div>
         </div>
 
@@ -196,7 +196,7 @@
                 <h3>Como pagar</h3>
                 <div class="passo"><span class="num">1</span><p>Abra o aplicativo do seu banco</p></div>
                 <div class="passo"><span class="num">2</span><p>Escolha <strong>PIX</strong> e cole o código, ou use a câmera para ler o QR Code</p></div>
-                <div class="passo"><span class="num">3</span><p>Confira o valor de <strong>R$ 173,90</strong> e finalize o pagamento</p></div>
+                <div class="passo"><span class="num">3</span><p>Confira o valor de <strong id="passo-valor">R$ 179,60</strong> e finalize o pagamento</p></div>
             </div>
         </div>
 
@@ -204,13 +204,41 @@
     </main>
 
     <script>
-        // ---------- Identifica o kit pela URL (?kit=feminino ou ?kit=masculino) ----------
+        // ---------- Catálogo (o preço REAL é validado no servidor) ----------
+        const CATALOGO = {
+            feminino: {
+                nome: 'Kit Feminino — Elegância Irresistível',
+                foto: 'images/kit-feminino.jpg',
+                desc: '3 perfumes importados de 100ml',
+                de: 'R$ 597,00', por: 'R$ 179,60',
+            },
+            masculino: {
+                nome: 'Kit Masculino — Presença Marcante',
+                foto: 'images/kit-masculino.jpg',
+                desc: '3 perfumes importados de 100ml',
+                de: 'R$ 597,00', por: 'R$ 179,60',
+            },
+            combo: {
+                nome: 'Combo Feminino + Masculino',
+                foto: 'images/kit-feminino.jpg',
+                desc: '6 perfumes importados de 100ml (os 2 kits)',
+                de: 'R$ 1.194,00', por: 'R$ 329,90',
+            },
+        };
+
+        // ---------- Identifica o kit pela URL (?kit=feminino / masculino / combo) ----------
         const params = new URLSearchParams(location.search);
-        const kit = params.get('kit') === 'masculino' ? 'masculino' : 'feminino';
-        if (kit === 'masculino') {
-            document.getElementById('nome-kit').textContent = 'Kit Masculino — Presença Marcante';
-            document.getElementById('foto-kit').src = 'images/kit-masculino.jpg';
-        }
+        let kit = params.get('kit');
+        if (!CATALOGO[kit]) kit = 'feminino'; // padrão seguro
+        const info = CATALOGO[kit];
+
+        document.getElementById('nome-kit').textContent = info.nome;
+        document.getElementById('foto-kit').src = info.foto;
+        document.getElementById('desc-kit').textContent = info.desc;
+        document.getElementById('preco-de').textContent = info.de;
+        document.getElementById('preco-por').textContent = info.por;
+        document.getElementById('passo-valor').textContent = info.por;
+        document.getElementById('btn-gerar').textContent = 'GERAR PIX DE ' + info.por;
 
         // ---------- Preenche endereço automaticamente pelo CEP ----------
         document.getElementById('cep').addEventListener('blur', async (e) => {
@@ -332,7 +360,7 @@
                 iniciarTimer(30 * 60); // 30 minutos
             } catch (e) {
                 mostrarErro(e.message);
-                btn.disabled = false; btn.textContent = 'GERAR PIX DE R$ 173,90';
+                btn.disabled = false; btn.textContent = 'GERAR PIX DE ' + info.por;
             }
         }
 
