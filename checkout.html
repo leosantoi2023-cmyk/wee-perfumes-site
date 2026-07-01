@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Seguro — Wee Perfumes</title>
+    <meta name="robots" content="noindex">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --preto: #050505; --escuro: #121212; --dourado: #D4AF37;
+            --dourado-claro: #F3E5AB; --verde: #25D366; --verde-escuro: #1da851;
+            --branco: #fff; --cinza: #CCCCCC;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--preto); color: var(--branco); min-height: 100vh; }
+        .topo { text-align: center; padding: 24px 16px 8px; }
+        .topo h1 { font-family: 'Playfair Display', serif; color: var(--dourado); font-size: 1.6rem; letter-spacing: 1px; }
+        .topo p { color: var(--cinza); font-size: .85rem; }
+        .caixa { max-width: 520px; margin: 16px auto 48px; background: var(--escuro); border: 1px solid rgba(212,175,55,.35); border-radius: 14px; padding: 24px; }
+        .resumo { display: flex; gap: 14px; align-items: center; border-bottom: 1px solid rgba(255,255,255,.1); padding-bottom: 16px; margin-bottom: 20px; }
+        .resumo img { width: 84px; height: 84px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(212,175,55,.4); }
+        .resumo h2 { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--dourado-claro); margin-bottom: 4px; }
+        .resumo .preco { font-size: 1.3rem; font-weight: 700; color: var(--verde); }
+        .resumo .de { color: var(--cinza); text-decoration: line-through; font-size: .8rem; margin-right: 6px; }
+        label { display: block; font-size: .8rem; color: var(--cinza); margin: 12px 0 4px; }
+        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.15); background: #0a0a0a; color: var(--branco); font-size: 1rem; }
+        input:focus, select:focus { outline: 2px solid var(--dourado); border-color: transparent; }
+        .linha { display: flex; gap: 10px; }
+        .linha > div { flex: 1; }
+        .btn { display: block; width: 100%; margin-top: 22px; padding: 16px; border: none; border-radius: 10px; cursor: pointer;
+               font-size: 1.05rem; font-weight: 700; color: #04220f;
+               background: linear-gradient(135deg, #2ae06b 0%, var(--verde) 50%, var(--verde-escuro) 100%); }
+        .btn:disabled { opacity: .6; cursor: wait; }
+        .erro { background: #3a1111; border: 1px solid #a33; color: #ffb3b3; padding: 10px 14px; border-radius: 8px; margin-top: 14px; font-size: .9rem; display: none; }
+        /* Etapa do PIX */
+        #etapa-pix { display: none; text-align: center; }
+        #qrcode { background: #fff; padding: 14px; border-radius: 12px; display: inline-block; margin: 14px auto; }
+        .copiacola { display: flex; gap: 8px; margin-top: 10px; }
+        .copiacola input { font-size: .8rem; }
+        .btn-copiar { padding: 12px 16px; border-radius: 8px; border: 1px solid var(--dourado); background: transparent; color: var(--dourado); font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .aguardando { margin-top: 18px; color: var(--dourado-claro); font-size: .95rem; }
+        .pulsar { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--dourado); margin-right: 8px; animation: pulsar 1.2s infinite; vertical-align: middle; }
+        @keyframes pulsar { 0%,100% { opacity: .3 } 50% { opacity: 1 } }
+        .selo { text-align: center; color: var(--cinza); font-size: .78rem; margin-top: 18px; }
+        @media (prefers-reduced-motion: reduce) { .pulsar { animation: none } }
+    </style>
+</head>
+<body>
+    <header class="topo">
+        <h1>WEE PERFUMES</h1>
+        <p>🔒 Checkout seguro — Pagamento via PIX</p>
+    </header>
+
+    <main class="caixa">
+        <!-- Resumo do pedido -->
+        <div class="resumo">
+            <img id="foto-kit" src="images/kit-feminino.jpg" alt="Kit de perfumes">
+            <div>
+                <h2 id="nome-kit">Kit Feminino — Elegância Irresistível</h2>
+                <p><span class="de">R$ 597,00</span><span class="preco">R$ 173,90</span></p>
+                <p style="color:var(--cinza);font-size:.78rem">3 perfumes importados de 100ml</p>
+            </div>
+        </div>
+
+        <!-- ETAPA 1: dados de entrega -->
+        <div id="etapa-dados">
+            <label for="nome">Nome completo *</label>
+            <input id="nome" autocomplete="name" placeholder="Seu nome">
+
+            <div class="linha">
+                <div>
+                    <label for="whatsapp">WhatsApp *</label>
+                    <input id="whatsapp" autocomplete="tel" placeholder="(00) 90000-0000" inputmode="tel">
+                </div>
+                <div>
+                    <label for="email">E-mail (opcional)</label>
+                    <input id="email" type="email" autocomplete="email" placeholder="voce@email.com">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div style="max-width:150px">
+                    <label for="cep">CEP *</label>
+                    <input id="cep" autocomplete="postal-code" placeholder="00000-000" inputmode="numeric" maxlength="9">
+                </div>
+                <div>
+                    <label for="rua">Endereço *</label>
+                    <input id="rua" autocomplete="address-line1" placeholder="Rua / Avenida">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div style="max-width:120px">
+                    <label for="numero">Número *</label>
+                    <input id="numero" placeholder="Nº">
+                </div>
+                <div>
+                    <label for="complemento">Complemento</label>
+                    <input id="complemento" placeholder="Apto, bloco... (opcional)">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div>
+                    <label for="bairro">Bairro *</label>
+                    <input id="bairro" placeholder="Bairro">
+                </div>
+                <div>
+                    <label for="cidade">Cidade *</label>
+                    <input id="cidade" placeholder="Cidade">
+                </div>
+                <div style="max-width:90px">
+                    <label for="uf">UF *</label>
+                    <input id="uf" maxlength="2" placeholder="SP" style="text-transform:uppercase">
+                </div>
+            </div>
+
+            <button class="btn" id="btn-gerar" onclick="gerarPix()">GERAR PIX DE R$ 173,90</button>
+            <div class="erro" id="msg-erro"></div>
+        </div>
+
+        <!-- ETAPA 2: pagamento -->
+        <div id="etapa-pix">
+            <h2 style="font-family:'Playfair Display',serif;color:var(--dourado-claro)">Escaneie o QR Code para pagar</h2>
+            <p style="color:var(--cinza);font-size:.85rem">Abra o app do seu banco e escolha “Pagar com PIX”</p>
+            <div id="qrcode"></div>
+            <p style="font-size:.85rem;color:var(--cinza)">Ou use o PIX copia e cola:</p>
+            <div class="copiacola">
+                <input id="campo-copiacola" readonly>
+                <button class="btn-copiar" onclick="copiarCodigo(this)">Copiar</button>
+            </div>
+            <p class="aguardando"><span class="pulsar"></span>Aguardando confirmação do pagamento...</p>
+            <p style="color:var(--cinza);font-size:.78rem;margin-top:6px">Assim que o PIX for confirmado, você será redirecionado automaticamente.</p>
+        </div>
+
+        <p class="selo">Compra protegida • Seus dados são usados apenas para a entrega</p>
+    </main>
+
+    <script>
+        // ---------- Identifica o kit pela URL (?kit=feminino ou ?kit=masculino) ----------
+        const params = new URLSearchParams(location.search);
+        const kit = params.get('kit') === 'masculino' ? 'masculino' : 'feminino';
+        if (kit === 'masculino') {
+            document.getElementById('nome-kit').textContent = 'Kit Masculino — Presença Marcante';
+            document.getElementById('foto-kit').src = 'images/kit-masculino.jpg';
+        }
+
+        // ---------- Preenche endereço automaticamente pelo CEP ----------
+        document.getElementById('cep').addEventListener('blur', async (e) => {
+            const cep = e.target.value.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+            try {
+                const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const d = await r.json();
+                if (!d.erro) {
+                    document.getElementById('rua').value = d.logradouro || '';
+                    document.getElementById('bairro').value = d.bairro || '';
+                    document.getElementById('cidade').value = d.localidade || '';
+                    document.getElementById('uf').value = d.uf || '';
+                    document.getElementById('numero').focus();
+                }
+            } catch (_) { /* se falhar, a pessoa preenche manualmente */ }
+        });
+
+        // ---------- Gera o PIX ----------
+        let intervaloStatus = null;
+
+        async function gerarPix() {
+            const erro = document.getElementById('msg-erro');
+            erro.style.display = 'none';
+
+            const dados = {
+                kit,
+                nome: v('nome'), whatsapp: v('whatsapp'), email: v('email'),
+                cep: v('cep'), rua: v('rua'), numero: v('numero'),
+                complemento: v('complemento'), bairro: v('bairro'),
+                cidade: v('cidade'), uf: v('uf').toUpperCase(),
+            };
+
+            // validação básica no navegador
+            const faltando = ['nome','whatsapp','cep','rua','numero','bairro','cidade','uf'].filter(c => !dados[c]);
+            if (faltando.length) return mostrarErro('Preencha todos os campos obrigatórios (*).');
+
+            const btn = document.getElementById('btn-gerar');
+            btn.disabled = true; btn.textContent = 'Gerando PIX...';
+
+            try {
+                const r = await fetch('/api/criar-pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados),
+                });
+                const resp = await r.json();
+                if (!r.ok) throw new Error(resp.erro || 'Falha ao gerar o PIX.');
+
+                // mostra a etapa de pagamento
+                document.getElementById('etapa-dados').style.display = 'none';
+                document.getElementById('etapa-pix').style.display = 'block';
+                document.getElementById('campo-copiacola').value = resp.copiaCola;
+
+                // QR Code: usa a imagem da API se vier, senão gera a partir do copia-e-cola
+                const alvo = document.getElementById('qrcode');
+                if (resp.qrImagem) {
+                    const img = document.createElement('img');
+                    img.src = resp.qrImagem.startsWith('http') || resp.qrImagem.startsWith('data:')
+                        ? resp.qrImagem : 'data:image/png;base64,' + resp.qrImagem;
+                    img.width = 220; img.alt = 'QR Code PIX';
+                    alvo.appendChild(img);
+                } else {
+                    new QRCode(alvo, { text: resp.copiaCola, width: 220, height: 220 });
+                }
+
+                verificarPagamento(resp.txid);
+            } catch (e) {
+                mostrarErro(e.message);
+                btn.disabled = false; btn.textContent = 'GERAR PIX DE R$ 173,90';
+            }
+        }
+
+        // ---------- Verifica o pagamento a cada 5 segundos ----------
+        function verificarPagamento(txid) {
+            intervaloStatus = setInterval(async () => {
+                try {
+                    const r = await fetch('/api/status?txid=' + encodeURIComponent(txid));
+                    const d = await r.json();
+                    if (d.pago) {
+                        clearInterval(intervaloStatus);
+                        location.href = '/obrigado.html';
+                    }
+                } catch (_) { /* tenta de novo no próximo ciclo */ }
+            }, 5000);
+        }
+
+        function copiarCodigo(botao) {
+            const campo = document.getElementById('campo-copiacola');
+            navigator.clipboard.writeText(campo.value).then(() => {
+                botao.textContent = 'Copiado ✓';
+                setTimeout(() => botao.textContent = 'Copiar', 2500);
+            });
+        }
+
+        function v(id) { return document.getElementById(id).value.trim(); }
+        function mostrarErro(msg) {
+            const e = document.getElementById('msg-erro');
+            e.textContent = msg; e.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
