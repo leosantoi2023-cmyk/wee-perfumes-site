@@ -38,13 +38,58 @@
         /* Etapa do PIX */
         #etapa-pix { display: none; text-align: center; }
         #qrcode { background: #fff; padding: 14px; border-radius: 12px; display: inline-block; margin: 14px auto; }
-        .copiacola { display: flex; gap: 8px; margin-top: 10px; }
-        .copiacola input { font-size: .8rem; }
+        .copiacola { display: flex; gap: 8px; margin-top: 14px; }
+        .copiacola input { font-size: .8rem; width: 100%; text-align: center; }
         .btn-copiar { padding: 12px 16px; border-radius: 8px; border: 1px solid var(--dourado); background: transparent; color: var(--dourado); font-weight: 600; cursor: pointer; white-space: nowrap; }
         .aguardando { margin-top: 18px; color: var(--dourado-claro); font-size: .95rem; }
         .pulsar { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--dourado); margin-right: 8px; animation: pulsar 1.2s infinite; vertical-align: middle; }
         @keyframes pulsar { 0%,100% { opacity: .3 } 50% { opacity: 1 } }
         .selo { text-align: center; color: var(--cinza); font-size: .78rem; margin-top: 18px; }
+
+        /* Etapa PIX — novos elementos */
+        .pix-titulo { font-family: 'Playfair Display', serif; color: var(--dourado-claro); font-size: 1.35rem; }
+
+        /* Copia-e-cola em destaque */
+        .btn-copiar-grande {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; margin: 12px 0 6px; padding: 18px;
+            border: none; border-radius: 12px; cursor: pointer;
+            font-size: 1.1rem; font-weight: 800; letter-spacing: .5px; color: #2a1e00;
+            background: linear-gradient(135deg, #F9E9A0 0%, #E6C34A 45%, #C89B22 100%);
+            box-shadow: 0 6px 22px rgba(212,175,55,.5);
+            animation: pulsa-dourado 2s infinite;
+            transition: transform .1s, filter .15s;
+        }
+        .btn-copiar-grande:hover { filter: brightness(1.08); }
+        .btn-copiar-grande:active { transform: scale(.98); }
+        .btn-copiar-grande.copiado {
+            background: linear-gradient(135deg, #4be88a, #25D366 50%, #1da851 100%);
+            color: #04220f; animation: none; box-shadow: 0 6px 22px rgba(37,211,102,.5);
+        }
+        .ico-copiar { font-size: 1.2rem; }
+        @keyframes pulsa-dourado {
+            0%,100% { box-shadow: 0 6px 22px rgba(212,175,55,.45); }
+            50% { box-shadow: 0 8px 30px rgba(212,175,55,.85); }
+        }
+        @media (prefers-reduced-motion: reduce) { .btn-copiar-grande { animation: none; } }
+        .dica-copiar { color: var(--cinza); font-size: .8rem; margin-bottom: 4px; }
+
+        .pix-sub { color: var(--cinza); font-size: .88rem; margin-bottom: 4px; }
+        .pix-nota { color: var(--cinza); font-size: .78rem; margin-top: 6px; }
+        .timer-box { margin: 16px auto; padding: 10px 16px; display: inline-flex; gap: 8px; align-items: center;
+                     background: rgba(212,175,55,.1); border: 1px solid rgba(212,175,55,.4); border-radius: 10px;
+                     color: var(--dourado-claro); font-size: .9rem; }
+        .timer-box strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+        .timer-box.expirado { background: rgba(224,90,90,.12); border-color: #e05a5a; color: #ffb3b3; }
+
+        .passos { text-align: left; margin: 24px 0 8px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 20px; }
+        .passos h3 { font-family: 'Playfair Display', serif; color: var(--dourado); font-size: 1.05rem; margin-bottom: 14px; }
+        .passo { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+        .passo .num { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+                      background: linear-gradient(135deg, var(--dourado-claro), var(--dourado)); color: var(--preto);
+                      font-weight: 700; font-size: .85rem; }
+        .passo p { color: var(--cinza); font-size: .9rem; margin: 0; }
+        .passo strong { color: var(--branco); }
         @media (prefers-reduced-motion: reduce) { .pulsar { animation: none } }
     </style>
 </head>
@@ -127,19 +172,38 @@
 
         <!-- ETAPA 2: pagamento -->
         <div id="etapa-pix">
-            <h2 style="font-family:'Playfair Display',serif;color:var(--dourado-claro)">Escaneie o QR Code para pagar</h2>
-            <p style="color:var(--cinza);font-size:.85rem">Abra o app do seu banco e escolha “Pagar com PIX”</p>
+            <h2 class="pix-titulo">Escaneie o QR Code para pagar</h2>
+            <p class="pix-sub">Abra o app do seu banco e escolha “Pagar com PIX”</p>
+
             <div id="qrcode"></div>
-            <p style="font-size:.85rem;color:var(--cinza)">Ou use o PIX copia e cola:</p>
+
             <div class="copiacola">
                 <input id="campo-copiacola" readonly>
-                <button class="btn-copiar" onclick="copiarCodigo(this)">Copiar</button>
             </div>
+            <button class="btn-copiar-grande" onclick="copiarCodigo(this)">
+                <span class="ico-copiar">📋</span> COPIAR CÓDIGO PIX
+            </button>
+            <p class="dica-copiar">Toque acima, abra o app do seu banco e cole na área PIX</p>
+
+            <!-- Timer -->
+            <div class="timer-box">
+                <span>⏳ Tempo restante para pagar:</span>
+                <strong id="timer">30:00</strong>
+            </div>
+
             <p class="aguardando"><span class="pulsar"></span>Aguardando confirmação do pagamento...</p>
-            <p style="color:var(--cinza);font-size:.78rem;margin-top:6px">Assim que o PIX for confirmado, você será redirecionado automaticamente.</p>
+            <p class="pix-nota">Assim que o PIX for confirmado, você será redirecionado automaticamente.</p>
+
+            <!-- Passo a passo -->
+            <div class="passos">
+                <h3>Como pagar</h3>
+                <div class="passo"><span class="num">1</span><p>Abra o aplicativo do seu banco</p></div>
+                <div class="passo"><span class="num">2</span><p>Escolha <strong>PIX</strong> e cole o código, ou use a câmera para ler o QR Code</p></div>
+                <div class="passo"><span class="num">3</span><p>Confira o valor de <strong>R$ 173,90</strong> e finalize o pagamento</p></div>
+            </div>
         </div>
 
-        <p class="selo">Compra protegida • Seus dados são usados apenas para a entrega</p>
+        <p class="selo">🔒 Compra protegida • Seus dados são usados apenas para a entrega</p>
     </main>
 
     <script>
@@ -268,6 +332,7 @@
                 }
 
                 verificarPagamento(resp.txid);
+                iniciarTimer(30 * 60); // 30 minutos
             } catch (e) {
                 mostrarErro(e.message);
                 btn.disabled = false; btn.textContent = 'GERAR PIX DE R$ 173,90';
@@ -288,12 +353,41 @@
             }, 5000);
         }
 
+        // ---------- Timer regressivo ----------
+        function iniciarTimer(segundos) {
+            const el = document.getElementById('timer');
+            const box = el.closest('.timer-box');
+            const tick = () => {
+                const m = String(Math.floor(segundos / 60)).padStart(2, '0');
+                const s = String(segundos % 60).padStart(2, '0');
+                el.textContent = `${m}:${s}`;
+                if (segundos <= 0) {
+                    clearInterval(t);
+                    box.classList.add('expirado');
+                    el.textContent = 'Expirado';
+                    return;
+                }
+                segundos--;
+            };
+            tick();
+            const t = setInterval(tick, 1000);
+        }
+
         function copiarCodigo(botao) {
             const campo = document.getElementById('campo-copiacola');
-            navigator.clipboard.writeText(campo.value).then(() => {
-                botao.textContent = 'Copiado ✓';
-                setTimeout(() => botao.textContent = 'Copiar', 2500);
-            });
+            const feito = () => {
+                botao.classList.add('copiado');
+                botao.innerHTML = '✓ CÓDIGO COPIADO!';
+                setTimeout(() => {
+                    botao.classList.remove('copiado');
+                    botao.innerHTML = '<span class="ico-copiar">📋</span> COPIAR CÓDIGO PIX';
+                }, 2500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(campo.value).then(feito).catch(() => { campo.select(); document.execCommand('copy'); feito(); });
+            } else {
+                campo.select(); document.execCommand('copy'); feito();
+            }
         }
 
         function v(id) { return document.getElementById(id).value.trim(); }
