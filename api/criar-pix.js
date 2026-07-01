@@ -7,8 +7,9 @@ const PIMPOU_BASE = "https://api.pimpou.com/api/v2";
 
 // Preços definidos AQUI no servidor (o visitante não consegue alterar)
 const PRODUTOS = {
-  feminino: { nome: "Kit Feminino - Wee Perfumes", preco: 173.90 },
-  masculino: { nome: "Kit Masculino - Wee Perfumes", preco: 173.90 },
+  feminino: { nome: "Kit Feminino - Wee Perfumes", preco: 179.60 },
+  masculino: { nome: "Kit Masculino - Wee Perfumes", preco: 179.60 },
+  combo: { nome: "Combo Feminino + Masculino - Wee Perfumes (6 perfumes)", preco: 329.90 },
 };
 
 export default async function handler(req, res) {
