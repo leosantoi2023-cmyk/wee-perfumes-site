@@ -76,10 +76,13 @@
                     <input id="whatsapp" autocomplete="tel" placeholder="(00) 90000-0000" inputmode="tel">
                 </div>
                 <div>
-                    <label for="email">E-mail (opcional)</label>
-                    <input id="email" type="email" autocomplete="email" placeholder="voce@email.com">
+                    <label for="cpf">CPF *</label>
+                    <input id="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
                 </div>
             </div>
+
+            <label for="email">E-mail (opcional)</label>
+            <input id="email" type="email" autocomplete="email" placeholder="voce@email.com">
 
             <div class="linha">
                 <div style="max-width:150px">
@@ -165,6 +168,50 @@
             } catch (_) { /* se falhar, a pessoa preenche manualmente */ }
         });
 
+        // ---------- Máscaras automáticas (vão formatando enquanto digita) ----------
+        const soNumeros = (s) => s.replace(/\D/g, '');
+
+        document.getElementById('cpf').addEventListener('input', (e) => {
+            let n = soNumeros(e.target.value).slice(0, 11);
+            e.target.value = n
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        });
+
+        document.getElementById('cep').addEventListener('input', (e) => {
+            let n = soNumeros(e.target.value).slice(0, 8);
+            e.target.value = n.replace(/(\d{5})(\d)/, '$1-$2');
+        });
+
+        document.getElementById('whatsapp').addEventListener('input', (e) => {
+            let n = soNumeros(e.target.value).slice(0, 11);
+            e.target.value = n
+                .replace(/(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{5})(\d)/, '$1-$2');
+        });
+
+        // ---------- Validação real de CPF (confere os dígitos verificadores) ----------
+        function cpfValido(cpf) {
+            cpf = soNumeros(cpf);
+            if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            let soma = 0;
+            for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+            let d1 = (soma * 10) % 11; if (d1 === 10) d1 = 0;
+            if (d1 !== parseInt(cpf[9])) return false;
+            soma = 0;
+            for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+            let d2 = (soma * 10) % 11; if (d2 === 10) d2 = 0;
+            return d2 === parseInt(cpf[10]);
+        }
+
+        document.getElementById('cpf').addEventListener('blur', (e) => {
+            const n = soNumeros(e.target.value);
+            e.target.style.outline = (n.length === 11 && cpfValido(n)) || n.length === 0
+                ? '' : '2px solid #e05a5a';
+        });
+        document.getElementById('cpf').addEventListener('focus', (e) => { e.target.style.outline = ''; });
+
         // ---------- Gera o PIX ----------
         let intervaloStatus = null;
 
@@ -175,14 +222,17 @@
             const dados = {
                 kit,
                 nome: v('nome'), whatsapp: v('whatsapp'), email: v('email'),
+                cpf: v('cpf').replace(/\D/g, ''),
                 cep: v('cep'), rua: v('rua'), numero: v('numero'),
                 complemento: v('complemento'), bairro: v('bairro'),
                 cidade: v('cidade'), uf: v('uf').toUpperCase(),
             };
 
             // validação básica no navegador
-            const faltando = ['nome','whatsapp','cep','rua','numero','bairro','cidade','uf'].filter(c => !dados[c]);
+            const faltando = ['nome','whatsapp','cpf','cep','rua','numero','bairro','cidade','uf'].filter(c => !dados[c]);
             if (faltando.length) return mostrarErro('Preencha todos os campos obrigatórios (*).');
+            if (dados.cpf.length !== 11) return mostrarErro('CPF inválido — digite os 11 números.');
+            if (!cpfValido(dados.cpf)) return mostrarErro('CPF inválido — confira os números digitados.');
 
             const btn = document.getElementById('btn-gerar');
             btn.disabled = true; btn.textContent = 'Gerando PIX...';
