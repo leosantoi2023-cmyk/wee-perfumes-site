@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
   // Status varia entre APIs; consideramos pago os valores mais comuns
   const status = String(d.status || d.situacao || "").toLowerCase();
-  const pago = ["paid", "pago", "approved", "aprovado", "completed", "concluida", "concluída", "confirmed", "confirmado"].includes(status);
+  const pago = ["paid", "pago", "approved", "aprovado", "completed", "complete", "concluida", "concluída", "confirmed", "confirmado", "success", "sucesso"].includes(status);
 
   return res.status(200).json({ pago, status });
 }
