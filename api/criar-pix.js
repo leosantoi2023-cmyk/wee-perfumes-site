@@ -77,7 +77,7 @@ export default async function handler(req, res) {
     //  real: { success: true, data:        { transactionId, copiaecola, qrCode } }
     const p = corpo.paymentData || corpo.data || {};
     const txid = p.transactionId || p.txid || null;
-    const copiaCola = p.copiaecola || p.copiaECola || p.copia_cola || p.brcode || null;
+    const copiaCola = p.copyPaste || p.copiaecola || p.copiaECola || p.copia_cola || p.brcode || null;
     const qrImagem = p.qrcode || p.qrCode || p.qr_code || null;
 
     if (resposta.ok && (corpo.success === true || corpo.status === true) && txid && copiaCola) {
