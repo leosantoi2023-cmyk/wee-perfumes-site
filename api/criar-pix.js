@@ -72,13 +72,19 @@ export default async function handler(req, res) {
 
     const corpo = await resposta.json().catch(() => ({}));
 
-    // Sucesso conforme a doc: { status: true, paymentData: { transactionId, copiaecola, qrcode, ... } }
-    const p = corpo.paymentData;
-    if (resposta.ok && p && p.transactionId && p.copiaecola) {
+    // A Pimpou pode responder em dois formatos; aceitamos ambos:
+    //  doc:  { status: true,  paymentData: { transactionId, copiaecola, qrcode } }
+    //  real: { success: true, data:        { transactionId, copiaecola, qrCode } }
+    const p = corpo.paymentData || corpo.data || {};
+    const txid = p.transactionId || p.txid || null;
+    const copiaCola = p.copiaecola || p.copiaECola || p.copia_cola || p.brcode || null;
+    const qrImagem = p.qrcode || p.qrCode || p.qr_code || null;
+
+    if (resposta.ok && (corpo.success === true || corpo.status === true) && txid && copiaCola) {
       return res.status(200).json({
-        txid: p.transactionId,
-        copiaCola: p.copiaecola,
-        qrImagem: p.qrcode || null, // vem em base64
+        txid,
+        copiaCola,
+        qrImagem, // base64 (o checkout adiciona o prefixo se precisar)
         valor: produto.preco,
         produto: produto.nome,
       });
