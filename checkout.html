@@ -126,9 +126,6 @@
                 </div>
             </div>
 
-            <label for="email">E-mail (opcional)</label>
-            <input id="email" type="email" autocomplete="email" placeholder="voce@email.com">
-
             <div class="linha">
                 <div style="max-width:150px">
                     <label for="cep">CEP *</label>
@@ -285,7 +282,7 @@
 
             const dados = {
                 kit,
-                nome: v('nome'), whatsapp: v('whatsapp'), email: v('email'),
+                nome: v('nome'), whatsapp: v('whatsapp'),
                 cpf: v('cpf').replace(/\D/g, ''),
                 cep: v('cep'), rua: v('rua'), numero: v('numero'),
                 complemento: v('complemento'), bairro: v('bairro'),
