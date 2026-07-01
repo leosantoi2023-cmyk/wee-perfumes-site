@@ -194,7 +194,11 @@
                     body: JSON.stringify(dados),
                 });
                 const resp = await r.json();
-                if (!r.ok) throw new Error(resp.erro || 'Falha ao gerar o PIX.');
+                if (!r.ok) {
+                    let msg = resp.erro || 'Falha ao gerar o PIX.';
+                    if (resp.detalhe) msg += ' | Detalhe técnico: ' + JSON.stringify(resp.detalhe);
+                    throw new Error(msg);
+                }
 
                 // mostra a etapa de pagamento
                 document.getElementById('etapa-dados').style.display = 'none';
