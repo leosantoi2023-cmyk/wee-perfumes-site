@@ -39,13 +39,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ erro: "CPF inválido — digite os 11 números." });
     }
 
+    // Aplica cupom de desconto (validado aqui no servidor, não dá para burlar pelo navegador)
+    const CUPONS = { WEE20: 0.20 }; // 20% de desconto
+    const cupomInformado = String(dados.cupom || "").trim().toUpperCase();
+    const desconto = CUPONS[cupomInformado] || 0;
+    const valorFinal = Math.round(produto.preco * (1 - desconto) * 100) / 100;
+
     // Endereço de entrega vai na descrição, para você ver no painel da Pimpou
     const endereco = `${dados.rua}, ${dados.numero}${dados.complemento ? " " + dados.complemento : ""} - ${dados.bairro}, ${dados.cidade}/${dados.uf} - CEP ${dados.cep}`;
-    const descricao = `${produto.nome} | ${dados.nome} | Zap: ${dados.whatsapp} | Entrega: ${endereco}`.slice(0, 250);
+    const cupomTxt = desconto ? ` | CUPOM ${cupomInformado} (-${desconto*100}%)` : "";
+    const descricao = `${produto.nome}${cupomTxt} | ${dados.nome} | Zap: ${dados.whatsapp} | Entrega: ${endereco}`.slice(0, 250);
 
     // Payload EXATAMENTE como na documentação da Pimpou
     const payload = {
-      amount: produto.preco,
+      amount: valorFinal,
       description: descricao,
       customer: {
         name: dados.nome,
@@ -86,7 +93,7 @@ export default async function handler(req, res) {
         txid,
         copiaCola,
         qrImagem, // base64 (o checkout adiciona o prefixo se precisar)
-        valor: produto.preco,
+        valor: valorFinal,
         produto: produto.nome,
       });
     }
