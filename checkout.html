@@ -108,6 +108,14 @@
         .rv-total span { color: var(--branco); font-weight: 700; }
         .rv-total span:last-child { color: var(--dourado-claro); }
 
+        /* Aviso de prazo de entrega */
+        .prazo-entrega { display: flex; align-items: center; gap: 12px; margin: 0 0 18px;
+                         padding: 12px 16px; background: rgba(37,211,102,.08);
+                         border: 1px solid rgba(37,211,102,.35); border-radius: 10px; }
+        .prazo-ico { font-size: 1.6rem; flex: none; }
+        .prazo-entrega strong { display: block; color: #eaffef; font-size: .92rem; }
+        .prazo-entrega small { color: var(--cinza); font-size: .76rem; line-height: 1.4; display: block; margin-top: 2px; }
+
         /* Selos de segurança */
         .selos-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
         .selo-item { text-align: center; font-size: .68rem; color: var(--cinza); line-height: 1.3; }
@@ -181,6 +189,15 @@
             <div class="rv-linha rv-desconto" id="rv-desconto-linha" style="display:none"><span>Cupom (20% OFF)</span><span id="rv-desconto">- R$ 0,00</span></div>
             <div class="rv-linha"><span>Frete</span><span class="rv-gratis">GRÁTIS</span></div>
             <div class="rv-linha rv-total"><span>Total</span><span id="rv-total">R$ 179,60</span></div>
+        </div>
+
+        <!-- Aviso de prazo de entrega -->
+        <div class="prazo-entrega">
+            <span class="prazo-ico">🚚</span>
+            <div>
+                <strong>Entrega em 5 dias úteis</strong>
+                <small>Envio para todo o Brasil após a confirmação do pagamento. Você recebe o código de rastreio no WhatsApp.</small>
+            </div>
         </div>
 
         <!-- ETAPA 1: dados de entrega -->
