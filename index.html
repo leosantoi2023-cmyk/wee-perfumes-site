@@ -46,6 +46,50 @@
     gtag('config', 'G-TRACKING_ID');
     </script>
     -->
+    <style>
+        /* FAQ — estilo embutido para garantir a aplicação */
+        .faq-section { padding: 60px 0; }
+        .faq-lista { max-width: 720px; margin: 30px auto 0; padding: 0 16px; }
+        .faq-item {
+            background: #141414;
+            border: 1px solid rgba(212,175,55,.3);
+            border-radius: 12px;
+            margin-bottom: 14px;
+            padding: 0 22px;
+            overflow: hidden;
+            transition: border-color .2s;
+        }
+        .faq-item[open] { border-color: rgba(212,175,55,.7); }
+        .faq-item summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 20px 0;
+            font-weight: 600;
+            color: #F3E5AB;
+            font-size: 1.02rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+        }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary::after {
+            content: '+';
+            font-size: 1.6rem;
+            line-height: 1;
+            color: #D4AF37;
+            transition: transform .25s;
+            flex: none;
+        }
+        .faq-item[open] summary::after { transform: rotate(45deg); }
+        .faq-item p {
+            color: #cfcfcf;
+            font-size: .93rem;
+            line-height: 1.65;
+            padding: 0 0 20px;
+            margin: 0;
+        }
+    </style>
 </head>
 
 <body>
