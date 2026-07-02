@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Pedidos — Wee Perfumes</title>
+    <meta name="robots" content="noindex">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box }
+        body { font-family:'Inter',sans-serif; background:#050505; color:#fff; padding:20px; }
+        h1 { font-family:'Playfair Display',serif; color:#D4AF37; text-align:center; margin-bottom:20px; }
+        .login { max-width:340px; margin:60px auto; background:#121212; border:1px solid rgba(212,175,55,.4);
+                 border-radius:14px; padding:28px; text-align:center; }
+        .login input { width:100%; padding:12px; margin:12px 0; border-radius:8px; border:1px solid rgba(255,255,255,.15);
+                       background:#0a0a0a; color:#fff; font-size:1rem; }
+        .login button, .filtros button { padding:12px 18px; border:none; border-radius:8px; cursor:pointer; font-weight:700;
+                 color:#050505; background:linear-gradient(135deg,#F3E5AB,#D4AF37,#997A00); }
+        .painel { max-width:1100px; margin:0 auto; display:none; }
+        .resumo-topo { display:flex; gap:14px; justify-content:center; margin-bottom:18px; flex-wrap:wrap; }
+        .card-stat { background:#121212; border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:14px 22px; text-align:center; }
+        .card-stat strong { display:block; font-size:1.6rem; color:#D4AF37; }
+        .card-stat span { font-size:.8rem; color:#aaa; }
+        .filtros { text-align:center; margin-bottom:16px; }
+        .filtros button { background:#222; color:#fff; margin:0 4px; font-weight:600; }
+        .filtros button.ativo { background:#D4AF37; color:#050505; }
+        table { width:100%; border-collapse:collapse; font-size:.85rem; }
+        th, td { padding:10px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08); }
+        th { color:#D4AF37; font-size:.78rem; text-transform:uppercase; }
+        .badge { padding:3px 8px; border-radius:6px; font-size:.72rem; font-weight:700; }
+        .badge.pago { background:rgba(37,211,102,.15); color:#4be88a; }
+        .badge.pendente { background:rgba(245,179,1,.15); color:#f5b301; }
+        .rastreio { font-family:monospace; color:#4be88a; }
+        .rastreio.vazio { color:#666; }
+        .erro-msg { color:#ffb3b3; margin-top:10px; font-size:.9rem; }
+    </style>
+</head>
+<body>
+    <h1>Painel de Pedidos</h1>
+
+    <div class="login" id="login">
+        <p style="color:#ccc;font-size:.9rem">Digite a senha para acessar:</p>
+        <input type="password" id="senha" placeholder="Senha" onkeydown="if(event.key==='Enter')entrar()">
+        <button onclick="entrar()">Entrar</button>
+        <p class="erro-msg" id="erro-login" style="display:none">Senha incorreta.</p>
+    </div>
+
+    <div class="painel" id="painel">
+        <div class="resumo-topo">
+            <div class="card-stat"><strong id="stat-total">0</strong><span>Pedidos pagos</span></div>
+            <div class="card-stat"><strong id="stat-valor">R$ 0</strong><span>Total vendido</span></div>
+            <div class="card-stat"><strong id="stat-pend">0</strong><span>Aguardando pgto</span></div>
+        </div>
+
+        <div class="filtros">
+            <button data-f="pago" class="ativo" onclick="filtrar('pago',this)">Pagos</button>
+            <button data-f="pendente" onclick="filtrar('pendente',this)">Pendentes</button>
+            <button data-f="" onclick="filtrar('',this)">Todos</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr><th>Data</th><th>Cliente</th><th>Produto</th><th>Valor</th><th>Rastreio</th><th>Entrega</th><th>Status</th></tr>
+            </thead>
+            <tbody id="corpo-tabela"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let senhaAtual = '';
+        let filtroAtual = 'pago';
+
+        async function entrar() {
+            senhaAtual = document.getElementById('senha').value;
+            const ok = await carregar();
+            if (ok) {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('painel').style.display = 'block';
+            } else {
+                document.getElementById('erro-login').style.display = 'block';
+            }
+        }
+
+        function filtrar(f, btn) {
+            filtroAtual = f;
+            document.querySelectorAll('.filtros button').forEach(b => b.classList.remove('ativo'));
+            btn.classList.add('ativo');
+            carregar();
+        }
+
+        async function carregar() {
+            try {
+                const url = '/api/pedidos?senha=' + encodeURIComponent(senhaAtual) + (filtroAtual ? '&status=' + filtroAtual : '');
+                const r = await fetch(url);
+                if (!r.ok) return false;
+                const d = await r.json();
+                render(d.pedidos || []);
+                return true;
+            } catch (_) { return false; }
+        }
+
+        async function render(pedidos) {
+            // estatísticas (busca todos para os números do topo)
+            try {
+                const rt = await fetch('/api/pedidos?senha=' + encodeURIComponent(senhaAtual));
+                const dt = await rt.json();
+                const todos = dt.pedidos || [];
+                const pagos = todos.filter(p => p.status === 'pago');
+                document.getElementById('stat-total').textContent = pagos.length;
+                document.getElementById('stat-pend').textContent = todos.filter(p => p.status === 'pendente').length;
+                const soma = pagos.reduce((s,p) => s + Number(p.total||0), 0);
+                document.getElementById('stat-valor').textContent = 'R$ ' + soma.toFixed(2).replace('.',',');
+            } catch(_) {}
+
+            const corpo = document.getElementById('corpo-tabela');
+            corpo.innerHTML = '';
+            pedidos.forEach(p => {
+                const data = p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '-';
+                const endereco = `${p.rua||''}, ${p.numero||''} - ${p.bairro||''}, ${p.cidade||''}/${p.uf||''} - ${p.cep||''}`;
+                const rastreio = p.tracking_code
+                    ? `<span class="rastreio">${p.tracking_code}</span>`
+                    : `<span class="rastreio vazio">—</span>`;
+                corpo.innerHTML += `<tr>
+                    <td>${data}</td>
+                    <td>${p.nome||''}<br><small style="color:#888">${p.whatsapp||''}</small></td>
+                    <td>${p.produto||''}</td>
+                    <td>R$ ${Number(p.total||0).toFixed(2).replace('.',',')}</td>
+                    <td>${rastreio}</td>
+                    <td style="font-size:.78rem;color:#bbb">${endereco}</td>
+                    <td><span class="badge ${p.status}">${p.status||''}</span></td>
+                </tr>`;
+            });
+        }
+    </script>
+</body>
+</html>
