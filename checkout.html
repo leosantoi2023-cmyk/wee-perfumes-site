@@ -91,6 +91,18 @@
         .passo p { color: var(--cinza); font-size: .9rem; margin: 0; }
         .passo strong { color: var(--branco); }
         @media (prefers-reduced-motion: reduce) { .pulsar { animation: none } }
+        /* PROVA SOCIAL */
+        .prova-social { max-width: 1080px; margin: 40px auto 60px; padding: 0 16px; }
+        .ps-titulo { font-family: 'Playfair Display', serif; color: var(--dourado); text-align: center; font-size: 1.6rem; }
+        .ps-sub { text-align: center; color: var(--cinza); font-size: .9rem; margin-bottom: 26px; }
+        .ps-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+        .ps-card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+        .ps-topo { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .ps-topo strong { color: #1a1a1a; font-size: .95rem; }
+        .ps-verif { color: #1a9d54; font-size: .74rem; font-weight: 600; }
+        .ps-estrelas { color: #f5b301; font-size: 1rem; letter-spacing: 2px; margin-bottom: 8px; }
+        .ps-texto { color: #333; font-size: .88rem; line-height: 1.5; margin-bottom: 12px; }
+        .ps-card img { width: 100%; border-radius: 10px; display: block; aspect-ratio: 3/4; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -202,6 +214,56 @@
 
         <p class="selo">🔒 Compra protegida • Seus dados são usados apenas para a entrega</p>
     </main>
+
+    <!-- PROVA SOCIAL -->
+    <section class="prova-social">
+        <h2 class="ps-titulo">Quem comprou, aprovou ⭐</h2>
+        <p class="ps-sub">Mais de 2.000 clientes satisfeitos em todo o Brasil</p>
+
+        <div class="ps-grade">
+            <div class="ps-card">
+                <div class="ps-topo"><strong>Jessica Lima</strong><span class="ps-verif">Verificado ✓</span></div>
+                <div class="ps-estrelas">★★★★★</div>
+                <p class="ps-texto">Qualidade incrível, chegou dentro do prazo e com certeza voltarei a comprar mais vezes, tô apaixonada!</p>
+                <img loading="lazy" src="images/review_1.jpg" alt="Avaliação de cliente">
+            </div>
+
+            <div class="ps-card">
+                <div class="ps-topo"><strong>Paula Santos</strong><span class="ps-verif">Verificado ✓</span></div>
+                <div class="ps-estrelas">★★★★★</div>
+                <p class="ps-texto">Muito obrigada, eu amei! A entrega foi incrível, vieram super bem embalados. Podem comprar sem medo!</p>
+                <img loading="lazy" src="images/review_4.jpg" alt="Avaliação de cliente">
+            </div>
+
+            <div class="ps-card">
+                <div class="ps-topo"><strong>Lili Rodrigues</strong><span class="ps-verif">Verificado ✓</span></div>
+                <div class="ps-estrelas">★★★★★</div>
+                <p class="ps-texto">Entrega extremamente rápida, embalagem impecável e o perfume é dos deuses! Já virei cliente fiel.</p>
+                <img loading="lazy" src="images/review_7.jpg" alt="Avaliação de cliente">
+            </div>
+
+            <div class="ps-card">
+                <div class="ps-topo"><strong>Vanessa</strong><span class="ps-verif">Verificado ✓</span></div>
+                <div class="ps-estrelas">★★★★★</div>
+                <p class="ps-texto">Gente, fiquei apaixonada nesse perfume. Cheiro maravilhoso, a fixação dura o dia inteiro. Recomendo demais!</p>
+                <img loading="lazy" src="images/review_11.jpg" alt="Avaliação de cliente">
+            </div>
+
+            <div class="ps-card">
+                <div class="ps-topo"><strong>Mariana</strong><span class="ps-verif">Verificado ✓</span></div>
+                <div class="ps-estrelas">★★★★★</div>
+                <p class="ps-texto">Comprei pro meu marido e ele amou. Chegou super rápido e bem embalado. Já é a segunda vez que compro!</p>
+                <img loading="lazy" src="images/review_15.jpg" alt="Avaliação de cliente">
+            </div>
+
+            <div class="ps-card">
+                <div class="ps-topo"><strong>Camila Souza</strong><span class="ps-verif">Verificado ✓</span></div>
+                <div class="ps-estrelas">★★★★★</div>
+                <p class="ps-texto">Simplesmente perfeito! O cheiro é idêntico ao original e dura o dia todo. Vale cada centavo, recomendo!</p>
+                <img loading="lazy" src="images/review_18.jpg" alt="Avaliação de cliente">
+            </div>
+        </div>
+    </section>
 
     <script>
         // ---------- Catálogo (o preço REAL é validado no servidor) ----------
