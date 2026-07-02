@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedido Confirmado — Wee Perfumes</title>
     <meta name="robots" content="noindex">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box }
         body { font-family:'Inter',sans-serif; background:#050505; color:#fff; min-height:100vh;
@@ -14,21 +14,42 @@
                   border-radius:16px; padding:40px 28px }
         .check { font-size:3.5rem; margin-bottom:12px }
         h1 { font-family:'Playfair Display',serif; color:#D4AF37; font-size:1.6rem; margin-bottom:10px }
-        p { color:#ccc; font-size:.95rem; margin-bottom:10px; line-height:1.6 }
+        p { color:#ccc; font-size:.95rem; margin-bottom:12px; line-height:1.6 }
         strong { color:#F3E5AB }
-        a { display:inline-block; margin-top:18px; padding:13px 26px; border-radius:10px;
-            background:linear-gradient(135deg,#F3E5AB,#D4AF37,#997A00); color:#050505;
-            font-weight:700; text-decoration:none }
+        .destaque-whats { background:rgba(37,211,102,.12); border:1px solid #25D366; border-radius:12px;
+                          padding:18px; margin:22px 0 10px; }
+        .destaque-whats p { color:#eaffef; font-size:.9rem; margin-bottom:14px; }
+        .btn-whats { display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+                     padding:16px; border-radius:10px; text-decoration:none; font-weight:700; font-size:1.02rem;
+                     color:#fff; background:#25D366; }
+        .btn-whats:hover { filter:brightness(1.05) }
+        .passos-entrega { text-align:left; margin:18px 0; }
+        .passos-entrega div { color:#bbb; font-size:.85rem; margin-bottom:8px; }
+        .voltar { display:inline-block; margin-top:10px; color:#999; font-size:.85rem; text-decoration:underline; }
     </style>
 </head>
 <body>
     <div class="cartao">
         <div class="check">✅</div>
         <h1>Pagamento confirmado!</h1>
-        <p>Obrigado pela sua compra na <strong>Wee Perfumes</strong>.</p>
-        <p>Seu kit já está sendo preparado e será enviado para o <strong>endereço informado no checkout</strong>. Você receberá as atualizações da entrega pelo <strong>WhatsApp</strong> cadastrado.</p>
-        <p>Guarde esta tela como comprovante da confirmação.</p>
-        <a href="/">Voltar ao site</a>
+        <p>Obrigado pela sua compra na <strong>Wee Perfumes</strong>. Recebemos seu pagamento com sucesso!</p>
+
+        <div class="destaque-whats">
+            <p>📦 <strong>Último passo:</strong> clique abaixo para receber o <strong>código de rastreio</strong> e o acompanhamento da sua entrega pelo WhatsApp:</p>
+            <a href="https://wa.me/5516981737516?text=Ol%C3%A1!%20Acabei%20de%20finalizar%20minha%20compra%20na%20Wee%20Perfumes%20e%20quero%20receber%20o%20c%C3%B3digo%20de%20rastreio%20do%20meu%20pedido."
+               target="_blank" rel="noopener" class="btn-whats">
+                💬 Receber rastreio no WhatsApp
+            </a>
+        </div>
+
+        <div class="passos-entrega">
+            <div>✔ Seu pedido já está sendo preparado</div>
+            <div>✔ Envio para o endereço informado no checkout</div>
+            <div>✔ Você receberá o código de rastreio pelo WhatsApp</div>
+        </div>
+
+        <p style="font-size:.82rem;color:#999">Guarde esta tela como comprovante da confirmação.</p>
+        <a href="/" class="voltar">Voltar ao site</a>
     </div>
 </body>
 </html>
