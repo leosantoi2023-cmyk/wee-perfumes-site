@@ -1,17 +1,15 @@
 // =============================================================
 //  Wee Perfumes — Webhook da Pimpou
-//  Recebe avisos de pagamento e valida a assinatura HMAC SHA256.
-//  Segue a documentação oficial: header x-pimpou-signature (hex).
-//  O segredo fica na variável de ambiente PIMPOU_WEBHOOK_SECRET.
+//  Ao receber payment.approved: valida a assinatura, marca o pedido
+//  como pago no Supabase e cria o pedido na RastroCode (gera rastreio).
 // =============================================================
 
 import crypto from "crypto";
+import { getSupabase } from "./_supabase.js";
 
-// Precisamos do corpo "cru" (raw) para validar a assinatura,
-// então desligamos o parser automático da Vercel.
-export const config = {
-  api: { bodyParser: false },
-};
+export const config = { api: { bodyParser: false } };
+
+const RASTROCODE_BASE = "https://app.rastrocode.site/api/v1";
 
 function lerCorpoCru(req) {
   return new Promise((resolve) => {
@@ -22,7 +20,6 @@ function lerCorpoCru(req) {
   });
 }
 
-// Validação da assinatura conforme a doc da Pimpou
 function assinaturaValida(rawBody, assinatura, secret) {
   if (!assinatura || !secret) return false;
   const esperada = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
@@ -32,43 +29,99 @@ function assinaturaValida(rawBody, assinatura, secret) {
   return crypto.timingSafeEqual(a, b);
 }
 
+async function criarPedidoRastroCode(p) {
+  const chave = process.env.RASTROCODE_API_KEY;
+  if (!chave) {
+    console.log("RASTROCODE_API_KEY nao configurada — pulando criacao do pedido.");
+    return { ok: false, tracking: null };
+  }
+  const pedido = {
+    transaction_id: p.transaction_id,
+    customer: {
+      name: p.nome,
+      email: p.email,
+      phone: String(p.whatsapp).replace(/\D/g, ""),
+      document: String(p.cpf).replace(/\D/g, ""),
+    },
+    address: {
+      street: p.rua,
+      number: String(p.numero),
+      complement: p.complemento || "",
+      neighborhood: p.bairro,
+      city: p.cidade,
+      state: String(p.uf).toUpperCase(),
+      zipcode: String(p.cep).replace(/\D/g, ""),
+    },
+    products: [{ name: p.produto, quantity: 1, price: Number(p.total) }],
+    total: Number(p.total),
+  };
+
+  const r = await fetch(`${RASTROCODE_BASE}/orders`, {
+    method: "POST",
+    headers: { "X-API-Key": chave, "Content-Type": "application/json" },
+    body: JSON.stringify(pedido),
+  });
+  const corpo = await r.json().catch(() => ({}));
+  if (r.ok && corpo.success) {
+    const tracking = corpo.data?.tracking_code || null;
+    console.log(`Pedido criado na RastroCode — txid ${p.transaction_id} — rastreio: ${tracking || "(ja processado)"}`);
+    return { ok: true, tracking };
+  }
+  console.log(`Erro RastroCode (${r.status}):`, JSON.stringify(corpo));
+  return { ok: false, tracking: null };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ ok: false, erro: "Método não permitido" });
+    return res.status(405).json({ ok: false, erro: "Metodo nao permitido" });
   }
 
   const corpoCru = await lerCorpoCru(req);
   const secret = process.env.PIMPOU_WEBHOOK_SECRET || "";
   const assinatura = req.headers["x-pimpou-signature"] || "";
 
-  // ---- Valida que o aviso é realmente da Pimpou ----
   if (secret) {
     if (!assinaturaValida(corpoCru, assinatura, secret)) {
       console.log("Webhook rejeitado: assinatura invalida ou ausente.");
       return res.status(401).json({ ok: false, erro: "Assinatura invalida" });
     }
   } else {
-    console.log("AVISO: PIMPOU_WEBHOOK_SECRET nao configurado - nao foi possivel validar a assinatura.");
+    console.log("AVISO: PIMPOU_WEBHOOK_SECRET nao configurado.");
   }
 
-  // ---- Lê o evento ----
   let evento = {};
   try { evento = JSON.parse(corpoCru || "{}"); } catch (_) {}
 
   const tipo = evento.event || req.headers["x-pimpou-event"] || "";
   const dados = evento.data || {};
-  const txid = dados.transactionId || "?";
+  const txid = dados.transactionId || "";
 
-  if (tipo === "payment.approved") {
-    // PAGAMENTO CONFIRMADO de forma confiavel (mesmo com a aba do cliente fechada)
-    console.log(`PAGAMENTO APROVADO - txid: ${txid} - valor: R$ ${dados.amount} - liquido: R$ ${dados.netAmount}`);
-    // Futuro: enviar e-mail, salvar em banco, avisar no WhatsApp, etc.
-  } else if (tipo === "cashout.completed") {
-    console.log(`Saque concluido - id: ${dados.cashoutId} - valor: R$ ${dados.amount}`);
+  if (tipo === "payment.approved" && txid) {
+    console.log(`PAGAMENTO APROVADO — txid: ${txid} — valor: R$ ${dados.amount}`);
+    try {
+      const supabase = getSupabase();
+      if (supabase) {
+        // Busca o pedido salvo quando o cliente gerou o PIX
+        const { data: pedido } = await supabase
+          .from("pedidos").select("*").eq("transaction_id", txid).single();
+
+        if (pedido && pedido.status !== "pago") {
+          const resultado = await criarPedidoRastroCode(pedido);
+          await supabase.from("pedidos").update({
+            status: "pago",
+            pago_em: new Date().toISOString(),
+            tracking_code: resultado.tracking,
+          }).eq("transaction_id", txid);
+        } else if (!pedido) {
+          console.log(`Sem registro no Supabase para o txid ${txid}.`);
+        }
+      }
+    } catch (e) {
+      console.log("Erro ao processar pos-pagamento:", e.message);
+    }
   } else {
-    console.log(`Evento recebido: ${tipo} - txid: ${txid}`);
+    console.log(`Evento recebido: ${tipo} — txid: ${txid || "?"}`);
   }
 
-  // Responde 2xx rapido para a Pimpou confirmar a entrega (conforme a doc)
   return res.status(200).json({ success: true });
 }
