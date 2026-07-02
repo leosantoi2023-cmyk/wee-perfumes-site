@@ -475,6 +475,7 @@
         const info = CATALOGO[kit];
 
         let cupomAtivo = false; // vira true quando aplica WEE20
+        let metodoPgto = 'pix'; // 'pix' ou 'cartao'
 
         const fmt = (n) => 'R$ ' + n.toFixed(2).replace('.', ',');
 
@@ -506,8 +507,6 @@
         atualizarValores();
 
         // ---------- Método de pagamento (PIX ou Cartão) ----------
-        let metodoPgto = 'pix';
-
         function selecionarMetodo(m) {
             metodoPgto = m;
             document.getElementById('btn-metodo-pix').classList.toggle('ativo', m === 'pix');
