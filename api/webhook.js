@@ -6,6 +6,7 @@
 
 import crypto from "crypto";
 import { getSupabase } from "./_supabase.js";
+import { enviarCompraMeta } from "./_meta.js";
 
 export const config = { api: { bodyParser: false } };
 
@@ -112,6 +113,18 @@ export default async function handler(req, res) {
             pago_em: new Date().toISOString(),
             tracking_code: resultado.tracking,
           }).eq("transaction_id", txid);
+
+          // Envia a compra para a Meta (API de Conversões) — não bloqueável.
+          // Usa o txid como event_id para a Meta deduplicar com o pixel do navegador.
+          await enviarCompraMeta({
+            email: pedido.email,
+            telefone: pedido.whatsapp,
+            cpf: pedido.cpf,
+            nome: pedido.nome,
+            valor: pedido.total,
+            eventId: txid,
+            produto: pedido.produto,
+          });
         } else if (!pedido) {
           console.log(`Sem registro no Supabase para o txid ${txid}.`);
         }
