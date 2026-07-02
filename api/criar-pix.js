@@ -3,6 +3,8 @@
 //  Formato oficial da documentação Pimpou API v2
 // =============================================================
 
+import { getSupabase } from "./_supabase.js";
+
 const PIMPOU_BASE = "https://api.pimpou.com/api/v2";
 
 // Preços definidos AQUI no servidor (o visitante não consegue alterar)
@@ -89,6 +91,38 @@ export default async function handler(req, res) {
     const qrImagem = p.qrcode || p.qrCode || p.qr_code || null;
 
     if (resposta.ok && (corpo.success === true || corpo.status === true) && txid && copiaCola) {
+      // Salva o pedido no Supabase como "pendente". Quando o pagamento for
+      // confirmado (webhook), atualizamos para "pago" e criamos na RastroCode.
+      try {
+        const supabase = getSupabase();
+        if (supabase) {
+          await supabase.from("pedidos").upsert(
+            {
+              transaction_id: txid,
+              status: "pendente",
+              produto: produto.nome,
+              total: valorFinal,
+              cupom: cupomInformado || null,
+              nome: dados.nome,
+              email: dados.email || "naoinformado@tempestshop.online",
+              whatsapp: String(dados.whatsapp).replace(/\D/g, ""),
+              cpf: cpf,
+              rua: dados.rua,
+              numero: dados.numero,
+              complemento: dados.complemento || "",
+              bairro: dados.bairro,
+              cidade: dados.cidade,
+              uf: String(dados.uf).toUpperCase(),
+              cep: String(dados.cep).replace(/\D/g, ""),
+            },
+            { onConflict: "transaction_id" }
+          );
+        }
+      } catch (e) {
+        // Se o Supabase falhar, o PIX ainda é gerado (não bloqueia a venda)
+        console.log("Aviso: não consegui salvar o pedido no Supabase:", e.message);
+      }
+
       return res.status(200).json({
         txid,
         copiaCola,
