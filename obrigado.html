@@ -22,11 +22,12 @@
         var p = new URLSearchParams(location.search);
         var valor = parseFloat(p.get('v')) || 0;
         var produto = p.get('p') || 'Pedido Wee Perfumes';
+        var txid = p.get('t') || undefined;
         fbq('track', 'Purchase', {
             value: valor,
             currency: 'BRL',
             content_name: produto
-        });
+        }, txid ? { eventID: txid } : undefined);
     })();
     </script>
     <noscript><img height="1" width="1" style="display:none"
