@@ -136,6 +136,24 @@
 
         /* Selos de segurança */
         .selos-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+
+        /* Seletor de método de pagamento */
+        .metodo-pgto { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .metodo-btn { display: flex; flex-direction: column; align-items: center; gap: 2px;
+                      padding: 14px 8px; border-radius: 12px; cursor: pointer;
+                      background: #0a0a0a; border: 2px solid rgba(255,255,255,.12);
+                      color: var(--branco); font-family: inherit; transition: all .15s; }
+        .metodo-btn small { color: var(--cinza); font-size: .72rem; }
+        .metodo-btn .metodo-ico { font-size: 1.5rem; }
+        .metodo-btn.ativo { border-color: var(--dourado-claro); background: rgba(212,175,55,.1); }
+        .metodo-btn.ativo small { color: var(--dourado-claro); }
+
+        /* Campos do cartão */
+        .divisor-cartao { margin: 8px 0 14px; color: var(--dourado-claro); font-size: .85rem;
+                          font-weight: 600; border-top: 1px solid rgba(255,255,255,.1); padding-top: 14px; }
+        #campos-cartao select { width: 100%; padding: 13px; border-radius: 10px; background: #0a0a0a;
+                                border: 1px solid rgba(255,255,255,.15); color: var(--branco);
+                                font-size: 1rem; font-family: inherit; margin-bottom: 4px; }
         .selo-item { text-align: center; font-size: .68rem; color: var(--cinza); line-height: 1.3; }
         .selo-item span { display: block; font-size: 1.3rem; margin-bottom: 3px; }
 
@@ -220,6 +238,20 @@
 
         <!-- ETAPA 1: dados de entrega -->
         <div id="etapa-dados">
+            <!-- Seletor de forma de pagamento -->
+            <div class="metodo-pgto">
+                <button type="button" class="metodo-btn ativo" id="btn-metodo-pix" onclick="selecionarMetodo('pix')">
+                    <span class="metodo-ico">⚡</span>
+                    <span>PIX</span>
+                    <small>Aprovação na hora</small>
+                </button>
+                <button type="button" class="metodo-btn" id="btn-metodo-cartao" onclick="selecionarMetodo('cartao')">
+                    <span class="metodo-ico">💳</span>
+                    <span>Cartão</span>
+                    <small>Até 6x</small>
+                </button>
+            </div>
+
             <label for="nome">Nome completo *</label>
             <input id="nome" autocomplete="name" placeholder="Seu nome">
 
@@ -267,6 +299,30 @@
                         <input id="uf" maxlength="2" placeholder="SP" style="text-transform:uppercase">
                     </div>
                 </div>
+            </div>
+
+            <!-- Campos do CARTÃO (aparecem só quando método = cartão) -->
+            <div id="campos-cartao" style="display:none">
+                <div class="divisor-cartao">Dados do cartão</div>
+                <label for="cardNumber">Número do cartão *</label>
+                <input id="cardNumber" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19" autocomplete="cc-number">
+
+                <label for="cardHolder">Nome impresso no cartão *</label>
+                <input id="cardHolder" placeholder="Como está no cartão" autocomplete="cc-name" style="text-transform:uppercase">
+
+                <div class="linha">
+                    <div>
+                        <label for="cardExp">Validade *</label>
+                        <input id="cardExp" placeholder="MM/AAAA" inputmode="numeric" maxlength="7" autocomplete="cc-exp">
+                    </div>
+                    <div>
+                        <label for="cardCvv">CVV *</label>
+                        <input id="cardCvv" placeholder="000" inputmode="numeric" maxlength="4" autocomplete="cc-csc">
+                    </div>
+                </div>
+
+                <label for="installments">Parcelas *</label>
+                <select id="installments" onchange="atualizarBotao()"></select>
             </div>
 
             <button class="btn" id="btn-gerar" onclick="gerarPix()">GERAR PIX DE R$ 173,90</button>
@@ -434,7 +490,9 @@
             document.getElementById('preco-de').textContent = info.de;
             document.getElementById('preco-por').textContent = fmt(total);
             document.getElementById('passo-valor').textContent = fmt(total);
-            document.getElementById('btn-gerar').textContent = 'GERAR PIX DE ' + fmt(total);
+            if (typeof metodoPgto === 'undefined' || metodoPgto === 'pix') {
+                document.getElementById('btn-gerar').textContent = 'GERAR PIX DE ' + fmt(total);
+            }
             document.getElementById('rv-subtotal').textContent = fmt(info.valor);
             document.getElementById('rv-total').textContent = fmt(total);
             const linhaDesc = document.getElementById('rv-desconto-linha');
@@ -447,7 +505,63 @@
         }
         atualizarValores();
 
-        // ---------- Preenche endereço automaticamente pelo CEP ----------
+        // ---------- Método de pagamento (PIX ou Cartão) ----------
+        let metodoPgto = 'pix';
+
+        function selecionarMetodo(m) {
+            metodoPgto = m;
+            document.getElementById('btn-metodo-pix').classList.toggle('ativo', m === 'pix');
+            document.getElementById('btn-metodo-cartao').classList.toggle('ativo', m === 'cartao');
+            document.getElementById('campos-cartao').style.display = (m === 'cartao') ? 'block' : 'none';
+            if (m === 'cartao') preencherParcelas();
+            atualizarBotao();
+        }
+
+        function preencherParcelas() {
+            const sel = document.getElementById('installments');
+            sel.innerHTML = '';
+            const total = valorFinal();
+            for (let n = 1; n <= 6; n++) {
+                const valorParcela = total / n;
+                const opt = document.createElement('option');
+                opt.value = n;
+                opt.textContent = n + 'x de ' + fmt(valorParcela) + (n === 1 ? ' à vista' : ' sem juros');
+                sel.appendChild(opt);
+            }
+        }
+
+        function atualizarBotao() {
+            const btn = document.getElementById('btn-gerar');
+            const total = valorFinal();
+            if (metodoPgto === 'pix') {
+                btn.textContent = 'GERAR PIX DE ' + fmt(total);
+                btn.setAttribute('onclick', 'gerarPix()');
+            } else {
+                const n = parseInt(document.getElementById('installments').value) || 1;
+                btn.textContent = 'PAGAR ' + (n > 1 ? (n + 'x ') : '') + fmt(total);
+                btn.setAttribute('onclick', 'pagarCartao()');
+            }
+        }
+
+        // ---------- Máscaras dos campos de cartão ----------
+        (function mascarasCartao() {
+            const num = document.getElementById('cardNumber');
+            if (num) num.addEventListener('input', () => {
+                let v = num.value.replace(/\D/g, '').slice(0, 16);
+                num.value = v.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+            });
+            const exp = document.getElementById('cardExp');
+            if (exp) exp.addEventListener('input', () => {
+                let v = exp.value.replace(/\D/g, '').slice(0, 6);
+                if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+                exp.value = v;
+            });
+            const cvv = document.getElementById('cardCvv');
+            if (cvv) cvv.addEventListener('input', () => {
+                cvv.value = cvv.value.replace(/\D/g, '').slice(0, 4);
+            });
+        })();
+
         function abrirEndereco() {
             document.getElementById('bloco-endereco').classList.add('aberto');
             document.getElementById('cep-dica').style.display = 'none';
@@ -517,6 +631,72 @@
 
         // ---------- Gera o PIX ----------
         let intervaloStatus = null;
+
+        async function pagarCartao() {
+            const erro = document.getElementById('msg-erro');
+            erro.style.display = 'none';
+
+            const exp = v('cardExp').split('/');
+            const dados = {
+                kit,
+                cupom: cupomAtivo ? 'WEE20' : '',
+                nome: v('nome'), whatsapp: v('whatsapp'),
+                cpf: v('cpf').replace(/\D/g, ''),
+                cep: v('cep'), rua: v('rua'), numero: v('numero'),
+                complemento: v('complemento'), bairro: v('bairro'),
+                cidade: v('cidade'), uf: v('uf').toUpperCase(),
+                cardNumber: v('cardNumber').replace(/\D/g, ''),
+                cardHolder: v('cardHolder'),
+                cardMonth: (exp[0] || '').trim(),
+                cardYear: (exp[1] || '').trim(),
+                cardCvv: v('cardCvv'),
+                installments: parseInt(v('installments')) || 1,
+            };
+
+            // validação dos dados pessoais/endereço
+            const faltando = ['nome','whatsapp','cpf','cep','rua','numero','bairro','cidade','uf'].filter(c => !dados[c]);
+            if (faltando.length) return mostrarErro('Preencha todos os campos obrigatórios (*).');
+            if (dados.cpf.length !== 11 || !cpfValido(dados.cpf)) return mostrarErro('CPF inválido — confira os números.');
+
+            // validação do cartão
+            if (dados.cardNumber.length < 13) return mostrarErro('Número do cartão inválido.');
+            if (!dados.cardHolder) return mostrarErro('Digite o nome impresso no cartão.');
+            if (!/^\d{2}$/.test(dados.cardMonth) || +dados.cardMonth < 1 || +dados.cardMonth > 12)
+                return mostrarErro('Mês de validade inválido (use MM).');
+            if (!/^\d{4}$/.test(dados.cardYear)) return mostrarErro('Ano de validade inválido (use AAAA).');
+            if (dados.cardCvv.length < 3) return mostrarErro('CVV inválido.');
+
+            const btn = document.getElementById('btn-gerar');
+            btn.disabled = true; btn.textContent = 'Processando pagamento...';
+
+            try {
+                const r = await fetch('/api/pagar-cartao', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados),
+                });
+                const resp = await r.json();
+                if (!r.ok || !resp.ok) {
+                    btn.disabled = false; atualizarBotao();
+                    return mostrarErro(resp.erro || 'Pagamento não aprovado. Verifique os dados do cartão.');
+                }
+
+                // Aprovado! Dispara Purchase e redireciona
+                if (window.fbq) fbq('track', 'Purchase', {
+                    value: resp.valor, currency: 'BRL', content_name: resp.produto
+                }, resp.id ? { eventID: resp.id } : undefined);
+
+                const params2 = new URLSearchParams({
+                    v: (resp.valor || valorFinal()).toFixed ? resp.valor.toFixed(2) : String(resp.valor),
+                    p: resp.produto || info.nome,
+                    t: resp.id || ''
+                });
+                location.href = '/obrigado.html?' + params2.toString();
+            } catch (e) {
+                btn.disabled = false; atualizarBotao();
+                mostrarErro('Erro de conexão. Tente novamente.');
+            }
+        }
 
         async function gerarPix() {
             const erro = document.getElementById('msg-erro');
@@ -627,6 +807,8 @@
         function aplicarCupom() {
             cupomAtivo = true;
             atualizarValores();
+            if (metodoPgto === 'cartao') preencherParcelas();
+            atualizarBotao();
             document.getElementById('popup-cupom').classList.remove('ativo');
             document.getElementById('banner-cupom').classList.add('ativo');
             cupomJaOferecido = true;
