@@ -91,6 +91,59 @@
         .passo p { color: var(--cinza); font-size: .9rem; margin: 0; }
         .passo strong { color: var(--branco); }
         @media (prefers-reduced-motion: reduce) { .pulsar { animation: none } }
+        /* Bloco de endereço recolhível */
+        .cep-dica { color: var(--cinza); font-size: .76rem; margin: 4px 0 0; }
+        .bloco-endereco {
+            max-height: 0; overflow: hidden; opacity: 0;
+            transition: max-height .4s ease, opacity .3s ease, margin .3s ease;
+        }
+        .bloco-endereco.aberto { max-height: 500px; opacity: 1; margin-top: 8px; }
+
+        /* Resumo de valores */
+        .resumo-valores { margin: 4px 0 18px; padding: 14px 16px; background: #0a0a0a; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; }
+        .rv-linha { display: flex; justify-content: space-between; align-items: center; font-size: .9rem; color: var(--cinza); padding: 4px 0; }
+        .rv-gratis { color: var(--verde); font-weight: 700; }
+        .rv-desconto span { color: var(--verde); }
+        .rv-total { border-top: 1px solid rgba(255,255,255,.12); margin-top: 6px; padding-top: 10px; font-size: 1.1rem; }
+        .rv-total span { color: var(--branco); font-weight: 700; }
+        .rv-total span:last-child { color: var(--dourado-claro); }
+
+        /* Selos de segurança */
+        .selos-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+        .selo-item { text-align: center; font-size: .68rem; color: var(--cinza); line-height: 1.3; }
+        .selo-item span { display: block; font-size: 1.3rem; margin-bottom: 3px; }
+
+        /* Botão WhatsApp */
+        .btn-whats { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 4px;
+                     padding: 13px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: .95rem;
+                     color: #fff; background: #25D366; border: none; }
+        .btn-whats:hover { filter: brightness(1.05); }
+
+        /* Pop-up de cupom */
+        .popup-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 999;
+                         align-items: center; justify-content: center; padding: 20px; }
+        .popup-overlay.ativo { display: flex; animation: fade .3s; }
+        @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+        .popup-caixa { position: relative; max-width: 380px; width: 100%; background: var(--escuro);
+                       border: 2px solid var(--dourado); border-radius: 16px; padding: 30px 24px; text-align: center;
+                       box-shadow: 0 10px 40px rgba(212,175,55,.3); }
+        .popup-fechar { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--cinza);
+                        font-size: 1.2rem; cursor: pointer; }
+        .popup-emoji { font-size: 2.6rem; margin: 0; }
+        .popup-titulo { font-family: 'Playfair Display', serif; color: var(--dourado-claro); font-size: 1.4rem; margin: 6px 0 10px; }
+        .popup-texto { color: var(--cinza); font-size: .92rem; margin-bottom: 16px; }
+        .popup-cupomcod { display: inline-block; padding: 8px 22px; margin-bottom: 16px; border: 2px dashed var(--dourado);
+                          border-radius: 8px; color: var(--dourado-claro); font-weight: 800; font-size: 1.3rem; letter-spacing: 2px; }
+        .popup-btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: 800;
+                     font-size: 1rem; color: #04220f; background: linear-gradient(135deg, #2ae06b, var(--verde), var(--verde-escuro)); }
+        .popup-recusar { display: block; width: 100%; margin-top: 12px; background: none; border: none;
+                         color: var(--cinza); font-size: .8rem; cursor: pointer; text-decoration: underline; }
+
+        /* Banner de cupom aplicado */
+        .banner-cupom { display: none; position: sticky; top: 0; z-index: 50; text-align: center; padding: 10px;
+                        background: linear-gradient(135deg, var(--verde), var(--verde-escuro)); color: #fff; font-size: .9rem; }
+        .banner-cupom.ativo { display: block; }
+
         /* PROVA SOCIAL */
         .prova-social { max-width: 1080px; margin: 40px auto 60px; padding: 0 16px; }
         .ps-titulo { font-family: 'Playfair Display', serif; color: var(--dourado); text-align: center; font-size: 1.6rem; }
@@ -122,6 +175,14 @@
             </div>
         </div>
 
+        <!-- Resumo de valores -->
+        <div class="resumo-valores">
+            <div class="rv-linha"><span>Subtotal</span><span id="rv-subtotal">R$ 179,60</span></div>
+            <div class="rv-linha rv-desconto" id="rv-desconto-linha" style="display:none"><span>Cupom (20% OFF)</span><span id="rv-desconto">- R$ 0,00</span></div>
+            <div class="rv-linha"><span>Frete</span><span class="rv-gratis">GRÁTIS</span></div>
+            <div class="rv-linha rv-total"><span>Total</span><span id="rv-total">R$ 179,60</span></div>
+        </div>
+
         <!-- ETAPA 1: dados de entrega -->
         <div id="etapa-dados">
             <label for="nome">Nome completo *</label>
@@ -138,45 +199,57 @@
                 </div>
             </div>
 
-            <div class="linha">
-                <div style="max-width:150px">
-                    <label for="cep">CEP *</label>
-                    <input id="cep" autocomplete="postal-code" placeholder="00000-000" inputmode="numeric" maxlength="9">
-                </div>
-                <div>
-                    <label for="rua">Endereço *</label>
-                    <input id="rua" autocomplete="address-line1" placeholder="Rua / Avenida">
-                </div>
-            </div>
+            <label for="cep">CEP *</label>
+            <input id="cep" autocomplete="postal-code" placeholder="Digite seu CEP" inputmode="numeric" maxlength="9">
+            <p id="cep-dica" class="cep-dica">Digite o CEP para preenchermos seu endereço automaticamente</p>
 
-            <div class="linha">
-                <div style="max-width:120px">
-                    <label for="numero">Número *</label>
-                    <input id="numero" placeholder="Nº">
-                </div>
-                <div>
-                    <label for="complemento">Complemento</label>
-                    <input id="complemento" placeholder="Apto, bloco... (opcional)">
-                </div>
-            </div>
+            <div id="bloco-endereco" class="bloco-endereco">
+                <label for="rua">Endereço *</label>
+                <input id="rua" autocomplete="address-line1" placeholder="Rua / Avenida">
 
-            <div class="linha">
-                <div>
-                    <label for="bairro">Bairro *</label>
-                    <input id="bairro" placeholder="Bairro">
+                <div class="linha">
+                    <div style="max-width:120px">
+                        <label for="numero">Número *</label>
+                        <input id="numero" placeholder="Nº">
+                    </div>
+                    <div>
+                        <label for="complemento">Complemento</label>
+                        <input id="complemento" placeholder="Apto, bloco... (opcional)">
+                    </div>
                 </div>
-                <div>
-                    <label for="cidade">Cidade *</label>
-                    <input id="cidade" placeholder="Cidade">
-                </div>
-                <div style="max-width:90px">
-                    <label for="uf">UF *</label>
-                    <input id="uf" maxlength="2" placeholder="SP" style="text-transform:uppercase">
+
+                <div class="linha">
+                    <div>
+                        <label for="bairro">Bairro *</label>
+                        <input id="bairro" placeholder="Bairro">
+                    </div>
+                    <div>
+                        <label for="cidade">Cidade *</label>
+                        <input id="cidade" placeholder="Cidade">
+                    </div>
+                    <div style="max-width:90px">
+                        <label for="uf">UF *</label>
+                        <input id="uf" maxlength="2" placeholder="SP" style="text-transform:uppercase">
+                    </div>
                 </div>
             </div>
 
             <button class="btn" id="btn-gerar" onclick="gerarPix()">GERAR PIX DE R$ 173,90</button>
             <div class="erro" id="msg-erro"></div>
+
+            <!-- Selos de segurança -->
+            <div class="selos-seg">
+                <div class="selo-item"><span>🔒</span> Pagamento<br>criptografado</div>
+                <div class="selo-item"><span>✅</span> Ambiente<br>seguro</div>
+                <div class="selo-item"><span>🛡️</span> Dados<br>protegidos</div>
+                <div class="selo-item"><span>🚚</span> Frete grátis<br>Brasil</div>
+            </div>
+
+            <!-- Ajuda WhatsApp -->
+            <a href="https://wa.me/5516981737516?text=Ol%C3%A1!%20Tenho%20uma%20d%C3%BAvida%20sobre%20a%20compra%20na%20Wee%20Perfumes"
+               target="_blank" rel="noopener" class="btn-whats">
+                💬 Dúvidas? Fale conosco no WhatsApp
+            </a>
         </div>
 
         <!-- ETAPA 2: pagamento -->
@@ -265,6 +338,22 @@
         </div>
     </section>
 
+    <!-- POP-UP DE CUPOM (saída) -->
+    <div id="popup-cupom" class="popup-overlay">
+        <div class="popup-caixa">
+            <button class="popup-fechar" onclick="fecharCupom()">✕</button>
+            <p class="popup-emoji">🎁</p>
+            <h2 class="popup-titulo">Espere! Um presente pra você</h2>
+            <p class="popup-texto">Não vá embora ainda… Garanta <strong>20% de desconto</strong> no seu pedido agora mesmo:</p>
+            <div class="popup-cupomcod">WEE20</div>
+            <button class="popup-btn" onclick="aplicarCupom()">QUERO MEU DESCONTO DE 20%</button>
+            <button class="popup-recusar" onclick="fecharCupom()">Não, prefiro pagar o valor cheio</button>
+        </div>
+    </div>
+
+    <!-- Banner de cupom aplicado (fixo no topo) -->
+    <div id="banner-cupom" class="banner-cupom">✅ Cupom <strong>WEE20</strong> aplicado — 20% de desconto!</div>
+
     <script>
         // ---------- Catálogo (o preço REAL é validado no servidor) ----------
         const CATALOGO = {
@@ -272,19 +361,19 @@
                 nome: 'Kit Feminino — Elegância Irresistível',
                 foto: 'images/kit-feminino.jpg',
                 desc: '3 perfumes importados de 100ml',
-                de: 'R$ 597,00', por: 'R$ 179,60',
+                de: 'R$ 597,00', por: 'R$ 179,60', valor: 179.60,
             },
             masculino: {
                 nome: 'Kit Masculino — Presença Marcante',
                 foto: 'images/kit-masculino.jpg',
                 desc: '3 perfumes importados de 100ml',
-                de: 'R$ 597,00', por: 'R$ 179,60',
+                de: 'R$ 597,00', por: 'R$ 179,60', valor: 179.60,
             },
             combo: {
                 nome: 'Combo Feminino + Masculino',
                 foto: 'images/kit-combo.jpg',
                 desc: '6 perfumes importados de 100ml (os 2 kits)',
-                de: 'R$ 1.194,00', por: 'R$ 329,90',
+                de: 'R$ 1.194,00', por: 'R$ 329,90', valor: 329.90,
             },
         };
 
@@ -294,18 +383,45 @@
         if (!CATALOGO[kit]) kit = 'feminino'; // padrão seguro
         const info = CATALOGO[kit];
 
-        document.getElementById('nome-kit').textContent = info.nome;
-        document.getElementById('foto-kit').src = info.foto;
-        document.getElementById('desc-kit').textContent = info.desc;
-        document.getElementById('preco-de').textContent = info.de;
-        document.getElementById('preco-por').textContent = info.por;
-        document.getElementById('passo-valor').textContent = info.por;
-        document.getElementById('btn-gerar').textContent = 'GERAR PIX DE ' + info.por;
+        let cupomAtivo = false; // vira true quando aplica WEE20
+
+        const fmt = (n) => 'R$ ' + n.toFixed(2).replace('.', ',');
+
+        function valorFinal() {
+            return cupomAtivo ? info.valor * 0.8 : info.valor;
+        }
+
+        function atualizarValores() {
+            const total = valorFinal();
+            document.getElementById('nome-kit').textContent = info.nome;
+            document.getElementById('foto-kit').src = info.foto;
+            document.getElementById('desc-kit').textContent = info.desc;
+            document.getElementById('preco-de').textContent = info.de;
+            document.getElementById('preco-por').textContent = fmt(total);
+            document.getElementById('passo-valor').textContent = fmt(total);
+            document.getElementById('btn-gerar').textContent = 'GERAR PIX DE ' + fmt(total);
+            document.getElementById('rv-subtotal').textContent = fmt(info.valor);
+            document.getElementById('rv-total').textContent = fmt(total);
+            const linhaDesc = document.getElementById('rv-desconto-linha');
+            if (cupomAtivo) {
+                linhaDesc.style.display = 'flex';
+                document.getElementById('rv-desconto').textContent = '- ' + fmt(info.valor * 0.2);
+            } else {
+                linhaDesc.style.display = 'none';
+            }
+        }
+        atualizarValores();
 
         // ---------- Preenche endereço automaticamente pelo CEP ----------
+        function abrirEndereco() {
+            document.getElementById('bloco-endereco').classList.add('aberto');
+            document.getElementById('cep-dica').style.display = 'none';
+        }
+
         document.getElementById('cep').addEventListener('blur', async (e) => {
             const cep = e.target.value.replace(/\D/g, '');
             if (cep.length !== 8) return;
+            abrirEndereco(); // mostra os campos assim que houver um CEP válido em tamanho
             try {
                 const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
                 const d = await r.json();
@@ -316,7 +432,7 @@
                     document.getElementById('uf').value = d.uf || '';
                     document.getElementById('numero').focus();
                 }
-            } catch (_) { /* se falhar, a pessoa preenche manualmente */ }
+            } catch (_) { /* se falhar, os campos já estão abertos para preencher à mão */ }
         });
 
         // ---------- Máscaras automáticas (vão formatando enquanto digita) ----------
@@ -333,6 +449,7 @@
         document.getElementById('cep').addEventListener('input', (e) => {
             let n = soNumeros(e.target.value).slice(0, 8);
             e.target.value = n.replace(/(\d{5})(\d)/, '$1-$2');
+            if (n.length === 8) abrirEndereco();
         });
 
         document.getElementById('whatsapp').addEventListener('input', (e) => {
@@ -372,6 +489,7 @@
 
             const dados = {
                 kit,
+                cupom: cupomAtivo ? 'WEE20' : '',
                 nome: v('nome'), whatsapp: v('whatsapp'),
                 cpf: v('cpf').replace(/\D/g, ''),
                 cep: v('cep'), rua: v('rua'), numero: v('numero'),
@@ -422,7 +540,7 @@
                 iniciarTimer(30 * 60); // 30 minutos
             } catch (e) {
                 mostrarErro(e.message);
-                btn.disabled = false; btn.textContent = 'GERAR PIX DE ' + info.por;
+                btn.disabled = false; btn.textContent = 'GERAR PIX DE ' + fmt(valorFinal());
             }
         }
 
@@ -459,6 +577,43 @@
             tick();
             const t = setInterval(tick, 1000);
         }
+
+        // ---------- Cupom de saída (WEE20) ----------
+        function aplicarCupom() {
+            cupomAtivo = true;
+            atualizarValores();
+            document.getElementById('popup-cupom').classList.remove('ativo');
+            document.getElementById('banner-cupom').classList.add('ativo');
+            cupomJaOferecido = true;
+        }
+        function fecharCupom() {
+            document.getElementById('popup-cupom').classList.remove('ativo');
+            cupomJaOferecido = true;
+        }
+
+        // Mostra o pop-up quando a pessoa demonstra intenção de sair
+        let cupomJaOferecido = false;
+        function mostrarCupom() {
+            if (cupomJaOferecido || cupomAtivo) return;
+            // não mostra se já estiver na etapa de pagamento (PIX já gerado)
+            if (document.getElementById('etapa-pix').style.display === 'block') return;
+            document.getElementById('popup-cupom').classList.add('ativo');
+            cupomJaOferecido = true;
+        }
+        // Desktop: mouse sai pela parte de cima da janela
+        document.addEventListener('mouseout', (e) => {
+            if (e.clientY <= 0 && !e.relatedTarget) mostrarCupom();
+        });
+        // Celular: usuário tenta voltar (botão voltar) — usa histórico
+        history.pushState(null, '', location.href);
+        window.addEventListener('popstate', () => {
+            if (!cupomJaOferecido && !cupomAtivo) {
+                mostrarCupom();
+                history.pushState(null, '', location.href);
+            }
+        });
+        // Celular: inatividade / rolagem rápida pro topo como sinal de saída (leve)
+        let tempoInativo = setTimeout(() => {}, 0);
 
         function copiarCodigo(botao) {
             const campo = document.getElementById('campo-copiacola');
