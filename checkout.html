@@ -137,19 +137,21 @@
         /* Selos de segurança */
         .selos-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
 
-        /* Seletor de método de pagamento */
-        .metodo-pgto { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .metodo-btn { display: flex; flex-direction: column; align-items: center; gap: 2px;
-                      padding: 14px 8px; border-radius: 12px; cursor: pointer;
-                      background: #0a0a0a; border: 2px solid rgba(255,255,255,.12);
-                      color: var(--branco); font-family: inherit; transition: all .15s; }
-        .metodo-btn small { color: var(--cinza); font-size: .72rem; }
-        .metodo-btn .metodo-ico { font-size: 1.5rem; }
-        .metodo-btn.ativo { border-color: var(--dourado-claro); background: rgba(212,175,55,.1); }
-        .metodo-btn.ativo small { color: var(--dourado-claro); }
+        /* Formas de pagamento (estilo cards) */
+        .formas-pgto-titulo { font-weight: 700; color: var(--branco); margin: 22px 0 12px; font-size: 1rem; }
+        .formas-pgto { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
+        .forma-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+                      padding: 18px 16px; border-radius: 14px; cursor: pointer; text-align: left;
+                      background: #0d0d0d; border: 2px solid rgba(255,255,255,.14);
+                      color: var(--branco); font-family: inherit; transition: all .15s; min-height: 92px; }
+        .forma-card .forma-ico { color: var(--cinza); display: flex; transition: color .15s; }
+        .forma-card .forma-nome { font-size: .98rem; font-weight: 600; }
+        .forma-card:hover { border-color: rgba(255,255,255,.28); }
+        .forma-card.ativo { border-color: #25D366; background: rgba(37,211,102,.06); }
+        .forma-card.ativo .forma-ico { color: #25D366; }
 
         /* Campos do cartão */
-        .divisor-cartao { margin: 8px 0 14px; color: var(--dourado-claro); font-size: .85rem;
+        .divisor-cartao { margin: 18px 0 14px; color: var(--dourado-claro); font-size: .85rem;
                           font-weight: 600; border-top: 1px solid rgba(255,255,255,.1); padding-top: 14px; }
         #campos-cartao select { width: 100%; padding: 13px; border-radius: 10px; background: #0a0a0a;
                                 border: 1px solid rgba(255,255,255,.15); color: var(--branco);
@@ -238,20 +240,6 @@
 
         <!-- ETAPA 1: dados de entrega -->
         <div id="etapa-dados">
-            <!-- Seletor de forma de pagamento -->
-            <div class="metodo-pgto">
-                <button type="button" class="metodo-btn ativo" id="btn-metodo-pix" onclick="selecionarMetodo('pix')">
-                    <span class="metodo-ico">⚡</span>
-                    <span>PIX</span>
-                    <small>Aprovação na hora</small>
-                </button>
-                <button type="button" class="metodo-btn" id="btn-metodo-cartao" onclick="selecionarMetodo('cartao')">
-                    <span class="metodo-ico">💳</span>
-                    <span>Cartão</span>
-                    <small>Até 6x</small>
-                </button>
-            </div>
-
             <label for="nome">Nome completo *</label>
             <input id="nome" autocomplete="name" placeholder="Seu nome">
 
@@ -299,6 +287,23 @@
                         <input id="uf" maxlength="2" placeholder="SP" style="text-transform:uppercase">
                     </div>
                 </div>
+            </div>
+
+            <!-- Formas de pagamento (novo estilo) -->
+            <div class="formas-pgto-titulo">Formas de pagamento</div>
+            <div class="formas-pgto">
+                <button type="button" class="forma-card ativo" id="btn-metodo-pix" onclick="selecionarMetodo('pix')">
+                    <span class="forma-ico">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 12l10 10 10-10z"/></svg>
+                    </span>
+                    <span class="forma-nome">Pix</span>
+                </button>
+                <button type="button" class="forma-card" id="btn-metodo-cartao" onclick="selecionarMetodo('cartao')">
+                    <span class="forma-ico">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                    </span>
+                    <span class="forma-nome">Cartão de crédito</span>
+                </button>
             </div>
 
             <!-- Campos do CARTÃO (aparecem só quando método = cartão) -->
